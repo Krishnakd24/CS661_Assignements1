@@ -7,7 +7,7 @@ def volume_render(input_file, use_phong_shading):
     reader.SetFileName(input_file)
     reader.Update()
     
-    volume_data = reader.GetOutput()
+    volumeData = reader.GetOutput()
     
     #color transfer function
     ctf = vtk.vtkColorTransferFunction()
@@ -27,61 +27,61 @@ def volume_render(input_file, use_phong_shading):
     otf.AddPoint(101.815, 0.002)
     otf.AddPoint(2594.97, 0.0)
     
-    volume_property = vtk.vtkVolumeProperty()
-    volume_property.SetColor(ctf)
-    volume_property.SetScalarOpacity(otf)
-    volume_property.SetInterpolationTypeToLinear()
+    volumeProperty = vtk.vtkVolumeProperty()
+    volumeProperty.SetColor(ctf)
+    volumeProperty.SetScalarOpacity(otf)
+    volumeProperty.SetInterpolationTypeToLinear()
   
     if use_phong_shading:
-        volume_property.ShadeOn()
+        volumeProperty.ShadeOn()
         #Phong shading parameters
-        volume_property.SetAmbient(0.5)
-        volume_property.SetDiffuse(0.5)
-        volume_property.SetSpecular(0.5)
+        volumeProperty.SetAmbient(0.5)
+        volumeProperty.SetDiffuse(0.5)
+        volumeProperty.SetSpecular(0.5)
     else:
-        volume_property.ShadeOff()
+        volumeProperty.ShadeOff()
     
     #volume mapper
     mapper = vtk.vtkSmartVolumeMapper()
-    mapper.SetInputData(volume_data)
+    mapper.SetInputData(volumeData)
     
     #volume actor
     volume = vtk.vtkVolume()
     volume.SetMapper(mapper)
-    volume.SetProperty(volume_property)
+    volume.SetProperty(volumeProperty)
     
     #outline filter
-    outline_filter = vtk.vtkOutlineFilter()
-    outline_filter.SetInputData(volume_data)
-    outline_filter.Update()
+    outlineFilter = vtk.vtkOutlineFilter()
+    outlineFilter.SetInputData(volumeData)
+    outlineFilter.Update()
     
     #mapper for the outline
-    outline_mapper = vtk.vtkPolyDataMapper()
-    outline_mapper.SetInputConnection(outline_filter.GetOutputPort())
+    outlineMapper = vtk.vtkPolyDataMapper()
+    outlineMapper.SetInputConnection(outlineFilter.GetOutputPort())
     
     #outline actor
-    outline_actor = vtk.vtkActor()
-    outline_actor.SetMapper(outline_mapper)
-    outline_actor.GetProperty().SetColor(0, 0, 0)  #black outline
+    outlineActor = vtk.vtkActor()
+    outlineActor.SetMapper(outlineMapper)
+    outlineActor.GetProperty().SetColor(0, 0, 0)  #black outline
     
 
     #renderer 
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(0.95, 0.95, 0.95)  # White background
     renderer.AddActor(volume)
-    renderer.AddActor(outline_actor)
+    renderer.AddActor(outlineActor)
     renderer.ResetCamera()
     
-    render_window = vtk.vtkRenderWindow()
-    render_window.SetSize(1000, 1000)  #windoe size
-    render_window.AddRenderer(renderer)
+    renderWindow = vtk.vtkRenderWindow()
+    renderWindow.SetSize(1000, 1000)  #windoe size
+    renderWindow.AddRenderer(renderer)
     
     #Interactor
     interactor = vtk.vtkRenderWindowInteractor()
-    interactor.SetRenderWindow(render_window)
+    interactor.SetRenderWindow(renderWindow)
     
     #Display
-    render_window.Render()
+    renderWindow.Render()
     interactor.Start()
 
 
