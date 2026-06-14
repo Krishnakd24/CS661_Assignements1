@@ -64,7 +64,7 @@ How to Run:
 Arguments:
     <use_phong_shading>
         Controls whether Phong shading is enabled.
-        Accepted values (case-insensitive):
+        Accepted values (case-sensitive):
             yes  ->  Enable Phong shading
             no   ->  Disable Phong shading
 
