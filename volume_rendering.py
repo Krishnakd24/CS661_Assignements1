@@ -73,7 +73,7 @@ def volume_render(input_file, use_phong_shading):
     renderer.ResetCamera()
     
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1000, 1000)  #windoe size
+    renderWindow.SetSize(1000, 1000)  #window size
     renderWindow.AddRenderer(renderer)
     
     #Interactor
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         print("Example: python volume_rendering.py yes/no")
         sys.exit(1)
     
-    use_phong_input = sys.argv[1]
+    use_phong_input = sys.argv[1].lower()
     
     if use_phong_input== 'yes':
         use_phong = True
