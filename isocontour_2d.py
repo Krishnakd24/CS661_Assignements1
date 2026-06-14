@@ -4,6 +4,7 @@ import sys
 
 def lin_interpol(p1, p2, val1, val2, isoval):
     
+    # Avoid division by zero when values are nearly equal
     if abs(val2 - val1) < 1e-10:
         return [(p1[i] + p2[i]) / 2.0 for i in range(3)]
     
@@ -13,8 +14,21 @@ def lin_interpol(p1, p2, val1, val2, isoval):
     return crossing_point
 
 
+# Function to extract isocontour from 2D uniform grid
 def extract_isocontour(inputFile, isoval, outputFile):
+    """Extracts an isocontour from 2D scalar field data using a simplified marching squares algorithm.
+    
+    Algorithm: Traverses grid cells counterclockwise starting from bottom edge to find
+    edges where the isosurface crosses the isovalue. Uses linear interpolation to find
+    exact crossing points and creates line segments.
+    
+    Args:
+        inputFile: Path to input VTI file containing 2D scalar field
+        isoval: The isovalue to extract the contour for
+        outputFile: Path to output VTP file for the extracted contour
+    """
 
+    # Read 2D VTK ImageData from file
     reader = vtk.vtkXMLImageDataReader()
     reader.SetFileName(inputFile)
     reader.Update()
@@ -28,7 +42,9 @@ def extract_isocontour(inputFile, isoval, outputFile):
     points = vtk.vtkPoints()
     cells = vtk.vtkCellArray()
     
-  
+    # Traverse all cells in the grid (counterclockwise order)
+    # Cell corners: (i,j) = bottom-left, (i+1,j) = bottom-right, 
+    #               (i+1,j+1) = top-right, (i,j+1) = top-left
     for j in range(dims[1] - 1):
         for i in range(dims[0] - 1):
 
@@ -42,13 +58,13 @@ def extract_isocontour(inputFile, isoval, outputFile):
             p2 = imageData.GetPoint(idx2)
             p3 = imageData.GetPoint(idx3)
             
-            #Pressure values
-            val0 = scalars.GetValue(idx0)
-            val1 = scalars.GetValue(idx1)
-            val2 = scalars.GetValue(idx2)
+            # Get scalar values (pressure) at the four corners
+            val0 = scalars.GetValue(idx0)  
+            val1 = scalars.GetValue(idx1)  
+            val2 = scalars.GetValue(idx2) 
             val3 = scalars.GetValue(idx3)
             
-            #bottom (0-1), right (1-2), top (2-3), left (3-0)
+            #Bottom (0-1), Right (1-2), Top (2-3), Left (3-0)
             crossings = [] 
             
             # Bottom edge 
@@ -100,32 +116,48 @@ def extract_isocontour(inputFile, isoval, outputFile):
                 
     
     polyData = vtk.vtkPolyData()
-    polyData.SetPoints(points)
-    polyData.SetLines(cells)
+    polyData.SetPoints(points)      # Set the intersection points
+    polyData.SetLines(cells)        # Set the line segments
 
-    #Output
+    # Write the isocontour to output VTP file
     writer = vtk.vtkXMLPolyDataWriter()
     writer.SetFileName(outputFile)
     writer.SetInputData(polyData)
     writer.Write()
-    print(f"Isocontour written in {outputFile}")
+    
+    # Print information about what was written
+    print(f"Isocontour Extraction Complete: Isovalue={isoval}")
+    print(f"Output File: {outputFile}")
     
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("How to use: python isocontour_2d.py <isoval>")
         print("Example: python isocontour_2d.py 100")
+        print("Note: Valid isovalue range for Isabel_2D data is -1438 to 630")
         sys.exit(1)
     
     try:
         isoval = float(sys.argv[1])
+        if isoval>=630  or -1438>=isoval:
+            print("Please enter a valid number in range -1438 to 630")
+            sys.exit(1)
+
     except ValueError:
-        print("Enter valid number")
+        print("Please enter a valid number")
         sys.exit(1)
     
     inputFile = "Data/Isabel_2D.vti"
 
     outputFile = f"isocontour_{isoval}.vtp"
     
+    # Display execution information
+    print(f"Input File: {inputFile}")
+    print(f"Isovalue: {isoval}")
+    print(f"Output File: {outputFile}")
+    print("Processing...")
+    print("="*50)
+    
+    # Extract and write the isocontour
     extract_isocontour(inputFile, isoval, outputFile)
 
