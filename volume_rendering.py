@@ -1,15 +1,23 @@
 import sys
 import vtk
 
+# Function to perform volume rendering with color and opacity transfer functions
 def volume_render(input_file, use_phong_shading):
 
+    """
+    Args:
+        input_file: Path to the VTK ImageData file (.vti)
+        use_phong_shading: Boolean indicating whether to enable Phong shading
+    """
+    
+  
     reader = vtk.vtkXMLImageDataReader()
     reader.SetFileName(input_file)
     reader.Update()
     
     volumeData = reader.GetOutput()
     
-    #color transfer function
+   #Creating Color transfer function
     ctf = vtk.vtkColorTransferFunction()
     
     ctf.AddRGBPoint(-4931.54, 0, 1, 1)   
@@ -19,7 +27,7 @@ def volume_render(input_file, use_phong_shading):
     ctf.AddRGBPoint(-298.031, 1, 0.4, 0)   
     ctf.AddRGBPoint(2594.97, 1, 1, 0)      
     
-    #opacity transfer function
+    #Opacity transfer function
     otf = vtk.vtkPiecewiseFunction()
     
     # Data Value, Opacity Value
@@ -27,11 +35,13 @@ def volume_render(input_file, use_phong_shading):
     otf.AddPoint(101.815, 0.002)
     otf.AddPoint(2594.97, 0.0)
     
+    # Create volume property and apply transfer functions
     volumeProperty = vtk.vtkVolumeProperty()
     volumeProperty.SetColor(ctf)
     volumeProperty.SetScalarOpacity(otf)
     volumeProperty.SetInterpolationTypeToLinear()
   
+    # Set up Phong shading if requested by user
     if use_phong_shading:
         volumeProperty.ShadeOn()
         #Phong shading parameters
@@ -41,46 +51,46 @@ def volume_render(input_file, use_phong_shading):
     else:
         volumeProperty.ShadeOff()
     
-    #volume mapper
+    # Create smart volume mapper for efficient volume rendering
     mapper = vtk.vtkSmartVolumeMapper()
     mapper.SetInputData(volumeData)
     
-    #volume actor
+    #Create Volume actor
     volume = vtk.vtkVolume()
     volume.SetMapper(mapper)
     volume.SetProperty(volumeProperty)
     
-    #outline filter
+    # Create outline filter to show volume boundaries
     outlineFilter = vtk.vtkOutlineFilter()
     outlineFilter.SetInputData(volumeData)
     outlineFilter.Update()
     
-    #mapper for the outline
+    # Create mapper for the outline
     outlineMapper = vtk.vtkPolyDataMapper()
     outlineMapper.SetInputConnection(outlineFilter.GetOutputPort())
     
-    #outline actor
+    #Outline actor
     outlineActor = vtk.vtkActor()
     outlineActor.SetMapper(outlineMapper)
-    outlineActor.GetProperty().SetColor(0, 0, 0)  #black outline
+    outlineActor.GetProperty().SetColor(0, 0, 0)  # Set outline color to black
     
 
-    #renderer 
+    # Create renderer and set background color
     renderer = vtk.vtkRenderer()
-    renderer.SetBackground(0.95, 0.95, 0.95)  # White background
-    renderer.AddActor(volume)
-    renderer.AddActor(outlineActor)
-    renderer.ResetCamera()
+    renderer.SetBackground(0.95, 0.95, 0.95)  # Light gray background
+    renderer.AddActor(volume)                 
+    renderer.AddActor(outlineActor)           
+    renderer.ResetCamera()                 
     
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1000, 1000)  #window size
+    renderWindow.SetSize(1000, 1000)  # Window size: 1000 x 1000 pixels
     renderWindow.AddRenderer(renderer)
     
     #Interactor
     interactor = vtk.vtkRenderWindowInteractor()
     interactor.SetRenderWindow(renderWindow)
     
-    #Display
+    # Render the scene and start interactive mode
     renderWindow.Render()
     interactor.Start()
 
@@ -91,17 +101,21 @@ if __name__ == "__main__":
         print("Example: python volume_rendering.py yes/no")
         sys.exit(1)
     
-    use_phong_input = sys.argv[1].lower()
+    use_phong_input = sys.argv[1]
     
     if use_phong_input== 'yes':
         use_phong = True
-    elif use_phong_input =='no' :
+        print("Phong Shading Status: ON")
+    elif use_phong_input == 'no':
         use_phong = False
+        print("Phong Shading Status: OFF")
     else:
-        print("Error: put yes/no for phong shading")
+        print("Error: Invalid input. Please enter 'yes' or 'no' for Phong shading parameter")
         sys.exit(1)
     
+    # Set input file path
     input_file = "Data/Isabel_3D.vti"
     
-    print("Rendering")
+    # Display rendering status to user
+    print("Rendering Status: Starting volume rendering with the specified parameters...")
     volume_render(input_file, use_phong)
